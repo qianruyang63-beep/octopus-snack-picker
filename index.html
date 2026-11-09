@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>章鱼的零食研究所 🐙</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#fff4f7;color:#653d51;font-family:system-ui,sans-serif}main{max-width:520px;margin:auto;padding:24px 16px;text-align:center}h1{font-size:27px}p{color:#a1788b}.panel{background:white;border-radius:20px;padding:20px;margin:16px 0;box-shadow:0 5px 18px #edb6c033}.result{background:#ffe3ec;border:2px dashed #ee9cba;padding:30px 12px;border-radius:22px;margin:18px 0}#emoji{font-size:65px}#name{font-size:28px;font-weight:800;margin:12px 0}button{border:0;border-radius:14px;padding:12px 16px;cursor:pointer;background:#f9dce7;color:#8b4263;font-weight:600}.primary{background:#ed80a8;color:white;width:100%;font-size:18px;padding:17px}.active{background:#ed80a8;color:white}.categories{display:flex;flex-wrap:wrap;gap:8px;justify-content:center}.chips{display:flex;flex-wrap:wrap;gap:8px;justify-content:center}.chips button{font-size:13px;padding:9px}input{padding:12px;border:1px solid #e8b9ca;border-radius:12px;min-width:0;flex:1}.add{display:flex;gap:8px}small{color:#a1788b}#history{line-height:2}
+</style>
+</head>
+<body>
+<main>
+<div style="font-size:56px">🐙🍪</div>
+<h1>章鱼的零食研究所</h1>
+<p>今天吃什么？交给命运决定！</p>
+<div class="panel">
+<b>今天想吃哪一类？</b>
+<div class="categories" id="categories"></div>
+</div>
+<div class="result">
+<div id="emoji">🎁</div>
+<div id="name">今天吃什么呢？</div>
+<small id="tip">点击按钮，开启零食冒险！</small>
+</div>
+<button class="primary" id="draw">✨ 帮我随机选一个！</button>
+<div class="panel">
+<b>🍬 我的零食口袋</b>
+<p><small>可以添加或删除零食哦</small></p>
+<div class="add"><input id="newSnack" placeholder="输入零食名称"><button id="add">添加</button></div>
+<div class="chips" id="list" style="margin-top:15px"></div>
+</div>
+<div class="panel"><b>📜 最近抽到了</b><div id="history">还没有记录哦</div></div>
+<small>Made with 💗 for a hungry little octopus</small>
+</main>
+<script>
+const initial=[['🍮','焦糖布丁','甜食'],['🍪','曲奇饼干','甜食'],['🍰','草莓蛋糕','甜食'],['🍡','糯米团子','甜食'],['🥔','薯片','咸食'],['🍿','爆米花','咸食'],['🧀','芝士饼干','咸食'],['🥭','芒果切','清爽'],['🍓','草莓','清爽'],['🍇','葡萄','清爽'],['🧋','珍珠奶茶','饮品'],['🥛','草莓牛奶','饮品']];
+let snacks;try{snacks=JSON.parse(localStorage.getItem('octopusSnacks'))||initial}catch(e){snacks=initial}
+let category='全部',history=[],last='',busy=false;
+const $=id=>document.getElementById(id);
+const save=()=>localStorage.setItem('octopusSnacks',JSON.stringify(snacks));
+function render(){
+$('categories').innerHTML='';
+['全部','甜食','咸食','清爽','饮品'].forEach(c=>{let b=document.createElement('button');b.textContent=c;b.className=c===category?'active':'';b.onclick=()=>{category=c;render()};$('categories').append(b)});
+$('list').innerHTML='';
+snacks.forEach((s,i)=>{let b=document.createElement('button');b.textContent=s[0]+' '+s[1]+' ×';b.onclick=()=>{snacks.splice(i,1);save();render()};$('list').append(b)});
+}
+$('add').onclick=()=>{let name=$('newSnack').value.trim();if(!name)return;if(snacks.some(s=>s[1]===name)){alert('口袋里已经有啦！');return}snacks.push(['🍬',name,'自定义']);$('newSnack').value='';save();render()};
+$('newSnack').onkeydown=e=>{if(e.key==='Enter')$('add').click()};
+$('draw').onclick=()=>{
+if(busy)return;
+let pool=snacks.filter(s=>category==='全部'||s[2]===category);
+if(!pool.length){$('tip').textContent='这个分类还没有零食哦';return}
+busy=true;
+let choices=pool.length>1?pool.filter(s=>s[1]!==last):pool;
+let chosen=choices[Math.floor(Math.random()*choices.length)];
+let n=0;
+let timer=setInterval(()=>{
+let s=pool[Math.floor(Math.random()*pool.length)];
+$('emoji').textContent=s[0];$('name').textContent=s[1];$('tip').textContent='🔮 命运正在转动…';
+if(++n>=12){clearInterval(timer);last=chosen[1];$('emoji').textContent=chosen[0];$('name').textContent=chosen[1];$('tip').textContent='🎉 不喜欢？再抽一次！';history.unshift(chosen[0]+' '+chosen[1]);history=history.slice(0,5);$('history').textContent=history.join(' · ');busy=false}
+},90);
+};
+render();
+</script>
+</body>
+</html>
